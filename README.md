@@ -1,11 +1,14 @@
-mojito-build [![Build Status](https://travis-ci.org/yahoo/mojito-build.png)](https://travis-ci.org/yahoo/mojito-build)
+mojito-build
 ==========
+
+This package provides the `build` command for the [`mojito-cli`](https://github.com/yahoo/mojito-cli) tool, for use with [`mojito`](https://github.com/yahoo/mojito).
 
 wip.
 
+
 Install
 -------
-This package provides the `{{command}}` command for the [`mojito-cli`](https://github.com/yahoo/mojito-cli) tool.
+
 
 
 Discussion/Forums
