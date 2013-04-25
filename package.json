@@ -1,11 +1,8 @@
 {
   "name": "mojito-build",
-  "version": "0.0.1",
+  "version": "0.0.0pr1",
   "description": "",
   "main": "index.js",
-  "directories": {
-    "test": "tests"
-  },
   "dependencies": {},
   "devDependencies": {
     "tap": "~0.4.1"
