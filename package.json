@@ -3,7 +3,11 @@
   "version": "0.0.0pr1",
   "description": "",
   "main": "index.js",
-  "dependencies": {},
+  "dependencies": {
+    "mkdirp": "~0.3.5",
+    "wrench": "~1.4.4",
+    "rimraf": "~2.1.4"
+  },
   "devDependencies": {
     "tap": "~0.4.1"
   },
@@ -31,5 +35,9 @@
   ],
   "author": "Isao Yagi <isao@yahoo-inc.com>",
   "license": "BSD",
-  "keywords": ["mojito", "mojito-cli", "html5"]
+  "keywords": [
+    "mojito",
+    "mojito-cli",
+    "html5"
+  ]
 }

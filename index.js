@@ -4,16 +4,14 @@
 var path = require('path'),
     qs = require('querystring'),
 
-    BASE = path.resolve(__dirname, '../../../../') + '/',
-    CWD = process.cwd(),
-
-    writer = require('./writer'),
-    Store = require(BASE + 'lib/store'),
-    util = require(BASE + 'lib/management/utils'),
-
-    Mojito = require(BASE + 'lib/mojito'),
-    Scraper = require('./scraper'),
-    Builder = require('./html5app');
+    BASE,
+    CWD,
+    Store,
+    Mojito,
+    util,
+    writer = require('./lib/writer'),
+    Scraper = require('./lib/scraper'),
+    Builder = require('./lib/html5app');
 
 
 function getConfigs(opts, buildtype, builddir, store) {
@@ -24,7 +22,6 @@ function getConfigs(opts, buildtype, builddir, store) {
 
     // define required parent properties, if missing
     dotbuild = (appconf.builds && appconf.builds[buildtype]) || {};
-    dotbuild.urls = dotbuild.urls || [];
     appconf.staticHandling = appconf.staticHandling || {};
 
     if (builddir) {
@@ -34,7 +31,7 @@ function getConfigs(opts, buildtype, builddir, store) {
 
     if (!dotbuild.hasOwnProperty('buildDir')) {
         // use default build dir ./artifacts/builds/html5app
-        dotbuild.buildDir = path.resolve(CWD, 'artifacts/builds', buildtype);
+        dotbuild.buildDir = path.resolve('artifacts/builds', buildtype);
     }
 
     // ok, we should have all the inputs we need to proceed with any build
@@ -46,11 +43,6 @@ function getConfigs(opts, buildtype, builddir, store) {
             version: pkgmeta.pkg.version,
             specs: appconf.specs || {},
             dir: pkgmeta.fs.rootDir // should be same as CWD
-        },
-        snapshot: {
-            name: opts.snapshotName || '',
-            tag: opts.snapshotTag || '',
-            packages: dotbuild.packages || {}
         },
         build: {
             attachManifest: dotbuild.attachManifest || false,
@@ -76,7 +68,7 @@ function getConfigs(opts, buildtype, builddir, store) {
  * @param {Object} opts Parsed cli options like -c (see exports.options)
  * @param {Function} cb Callback params are: [errmsg], [show_usage], [die]
  */
-function run(args, opts, cb) {
+function main(args, opts, meta, cb) {
     var csvctx = util.contextCsvToObject, // shortcut
         buildtype = String(args[0]).toLowerCase(),
         store,
@@ -91,7 +83,10 @@ function run(args, opts, cb) {
         return cb('Invalid type', null, true);
     }
 
-    if (!util.isMojitoApp(CWD)) {
+    if (meta.app && meta.mojito) {
+        BASE = meta.mojito.path;
+        CWD = (meta.app && meta.app.path) || process.cwd();
+    } else {
         return cb('Not a Mojito directory', null, true);
     }
 
@@ -116,28 +111,35 @@ function run(args, opts, cb) {
         builder.exec(conf, store, cb);
     }
 
-    return opts.replace ? writer.rmrf(conf.build.dir, next) : next();
+    if (opts.replace) {
+    	writer.rmrf(conf.build.dir, next);
+    } else {
+    	next();
+    }
 }
 
-module.exports = {
-    run: run,
-    options: [
-        {shortName: 'c', longName: 'context', hasValue: true},
-        {shortName: 'm', longName: 'mojit', hasValue: true},
-        {shortName: 'r', longName: 'replace', hasValue: false},
-        {shortName: 'p', longName: 'port', hasValue: true}
-    ],
-    usage: [
-        'mojito build {type} [destination]',
-        '',
-        'type: "hybridapp" is currently the only valid type',
-        'destination: (optional) the directory where the build output goes.',
-        '  By default this is the type i.e. "./artifacts/builds/<type>"',
-        '',
-        'OPTIONS:',
-        ' --replace: Tells the build system to delete the destination directory and replace it.',
-        '        -r: Short for --replace',
-        ' --context: Tells the build system what context to build with i.e. device=iphone&lang=en-GB.',
-        '        -c: Short for --context\n'
-    ].join("\n  ")
-};
+exports = main;
+
+exports.options = [
+    {shortName: 'c', longName: 'context', hasValue: true},
+    {shortName: 'm', longName: 'mojit', hasValue: true},
+    {shortName: 'r', longName: 'replace', hasValue: false},
+    {shortName: 'p', longName: 'port', hasValue: true}
+];
+
+exports.usage = [
+    'mojito build {type} [destination]',
+    '',
+    'type: "html5app" is currently the only valid type',
+    'destination: (optional) the directory where the build output goes.',
+    '  By default this is the type i.e. "./artifacts/builds/<type>"',
+    '',
+    'OPTIONS:',
+    ' --replace: Tells the build system to delete the destination directory and replace it.',
+    '        -r: Short for --replace',
+    ' --context: Tells the build system what context to build with i.e. device=iphone&lang=en-GB.',
+    '        -c: Short for --context\n'].join("\n  ");
+
+exports.getConfigs = getConfigs;
+
+module.exports = exports;
