@@ -2,6 +2,7 @@ var test = require('tap').test,
     path = require('path'),
     fn = require('../').getConfigs;
 
+
 function getMockConfig(specs) {
     return {
         specs: {},
@@ -15,13 +16,18 @@ function getMockConfig(specs) {
     };
 }
 
-function getMockResourceVersions() {
-    return [{
-        source: {
-            pkg: {name: 'billy', version: '1.2.3'},
-            fs: {rootDir: 'goat/lake'}
+function getEnv(args, opts) {
+    return {
+        args: args || [],
+        opts: opts || {context:{}},
+        mojito: {path: 'path/to/mojito'},
+        app: {
+            name: 'billy',
+            version: '1.2.3',
+            specs: {},
+            path: 'goat/lake'
         }
-    }];
+    };
 }
 
 test('getConfigs() no application.json', function(t) {
@@ -30,7 +36,7 @@ test('getConfigs() no application.json', function(t) {
         store,
         actual,
         expected = {
-            mojitodir: undefined,
+            mojitodir: 'path/to/mojito',
             app: {
                 name: 'billy',
                 version: '1.2.3',
@@ -46,39 +52,34 @@ test('getConfigs() no application.json', function(t) {
                 type: type,
                 uris: []
             },
-            context: undefined, // n.b. always an object in normal flow
+            context: {}, // n.b. always an object in normal flow
             contextqs: '',
             tunnelpf: '/tunnel',
             staticpf: '/static'
-        };
+        },
+        env = getEnv([builddir]);
 
     store = {
         getAppConfig: function(t_ctx) {
-            t.equal(t_ctx, undefined, 'getAppConfig false');
+            t.same(t_ctx, {}, 'getAppConfig false');
             return false;
-        },
-        getResourceVersions: function rv(filterObj) {
-            var expected = {name:'package'};
-            t.same(filterObj, expected, 'getResourceVersions mock');
-            return getMockResourceVersions();
         }
     };
 
-    t.plan(3);
+    t.plan(2);
 
-    actual = fn({}, type, builddir, store);
+    actual = fn(type, env, store);
     t.same(actual, expected);
 });
 
 test('getConfigs() minimal configs', function(t) {
     var ctx = {device: 'iphone'},
-        opts = {context: ctx},
         type = 'html5app',
         builddir = 'path/to/builddir',
         store,
         actual,
         expected = {
-            mojitodir: undefined,
+            mojitodir: 'path/to/mojito',
             app: {
                 name: 'billy',
                 version: '1.2.3',
@@ -98,35 +99,30 @@ test('getConfigs() minimal configs', function(t) {
             contextqs: '?device=iphone',
             tunnelpf: '/tunnel',
             staticpf: '/static'
-        };
+        },
+        env = getEnv([builddir], {context: ctx});
 
     store = {
         getAppConfig: function(t_ctx) {
             t.same(t_ctx, ctx, 'getAppConfig mock');
             return {specs:{}};
-        },
-        getResourceVersions: function rv(filterObj) {
-            var expected = {name:'package'};
-            t.same(filterObj, expected, 'getResourceVersions mock');
-            return getMockResourceVersions();
         }
     };
 
-    t.plan(3);
+    t.plan(2);
 
-    actual = fn(opts, type, builddir, store);
+    actual = fn(type, env, store);
     t.same(actual, expected);
 });
 
 test('getConfigs() some configs', function(t) {
     var ctx = {device: 'iphone'},
-        opts = {context: ctx},
         type = 'html5app',
         builddir = 'path/to/builddir',
         store,
         actual,
         expected = {
-            mojitodir: undefined,
+            mojitodir: 'path/to/mojito',
             app: {
                 name: 'billy',
                 version: '1.2.3',
@@ -146,23 +142,19 @@ test('getConfigs() some configs', function(t) {
             contextqs: '?device=iphone',
             tunnelpf: '/tunnel',
             staticpf: '/static'
-        };
+        },
+        env = getEnv([builddir], {context: ctx});
 
     store = {
         getAppConfig: function(t_ctx) {
             t.same(t_ctx, ctx, 'getAppConfig mock');
             return getMockConfig();
-        },
-        getResourceVersions: function rv(filterObj) {
-            var expected = {name:'package'};
-            t.same(filterObj, expected, 'getResourceVersions mock');
-            return getMockResourceVersions();
         }
     };
 
-    t.plan(3);
+    t.plan(2);
 
-    actual = fn(opts, type, builddir, store);
+    actual = fn(type, env, store);
     t.same(actual, expected);
 });
 
@@ -170,11 +162,10 @@ test('getConfigs() w/ buildDir config', function(t) {
     var ctx = {device: 'iphone'},
         opts = {context: ctx},
         type = 'html5app',
-        builddir = '',
         store,
         actual,
         expected = {
-            mojitodir: undefined,
+            mojitodir: 'path/to/mojito',
             app: {
                 name: 'billy',
                 version: '1.2.3',
@@ -194,7 +185,8 @@ test('getConfigs() w/ buildDir config', function(t) {
             contextqs: '?device=iphone',
             tunnelpf: '/tunnel',
             staticpf: '/static'
-        };
+        },
+        env = getEnv([], {context: ctx});
 
     store = {
         getAppConfig: function(t_ctx) {
@@ -202,29 +194,22 @@ test('getConfigs() w/ buildDir config', function(t) {
             c.builds.html5app.buildDir = 'buildDir/from/configs';
             t.same(t_ctx, ctx, 'getAppConfig mock');
             return c;
-        },
-        getResourceVersions: function rv(filterObj) {
-            var expected = {name:'package'};
-            t.same(filterObj, expected, 'getResourceVersions mock');
-            return getMockResourceVersions();
         }
     };
 
-    t.plan(3);
+    t.plan(2);
 
-    actual = fn(opts, type, builddir, store);
+    actual = fn(type, env, store);
     t.same(actual, expected);
 });
 
 test('getConfigs() no specified buildDir', function(t) {
     var ctx = {device: 'iphone'},
-        opts = {context: ctx},
         type = 'html5app',
-        builddir = '',
         store,
         actual,
         expected = {
-            mojitodir: undefined,
+            mojitodir: 'path/to/mojito',
             app: {
                 name: 'billy',
                 version: '1.2.3',
@@ -244,22 +229,18 @@ test('getConfigs() no specified buildDir', function(t) {
             contextqs: '?device=iphone',
             tunnelpf: '/tunnel',
             staticpf: '/static'
-        };
+        },
+        env = getEnv([], {context: ctx});
 
     store = {
         getAppConfig: function(t_ctx) {
             t.same(t_ctx, ctx, 'getAppConfig mock');
             return getMockConfig();
-        },
-        getResourceVersions: function rv(filterObj) {
-            var expected = {name:'package'};
-            t.same(filterObj, expected, 'getResourceVersions mock');
-            return getMockResourceVersions();
         }
     };
 
-    t.plan(3);
+    t.plan(2);
 
-    actual = fn(opts, type, builddir, store);
+    actual = fn(type, env, store);
     t.same(actual, expected);
 });

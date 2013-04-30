@@ -13,10 +13,10 @@ var path = require('path'),
     Builder = require('./lib/html5app');
 
 
-function getConfigs(opts, buildtype, builddir, store) {
-    var appconf = store.getAppConfig(opts.context) || {/* no app.json? */},
-        pkgmeta = store.getResourceVersions({name: 'package'})[0].source,
-        contextqs = qs.stringify(opts.context), // context as uri query string
+function getConfigs(buildtype, env, store) {
+    var builddir = env.args.shift() || env.opts.directory,
+        appconf = store.getAppConfig(env.opts.context) || {/* no app.json? */},
+        contextqs = qs.stringify(env.opts.context), // context as uri query string
         dotbuild; // shortcut to appconf.builds[buildtype]
 
     // define required parent properties, if missing
@@ -38,21 +38,21 @@ function getConfigs(opts, buildtype, builddir, store) {
     return {
         mojitodir: BASE,
         app: {
-            name: pkgmeta.pkg.name,
-            version: pkgmeta.pkg.version,
+            name: env.app.name,
+            version: env.app.version,
             specs: appconf.specs || {},
-            dir: pkgmeta.fs.rootDir // should be same as CWD
+            dir: env.app.path // should be same as CWD
         },
         build: {
             attachManifest: dotbuild.attachManifest || false,
             forceRelativePaths: dotbuild.forceRelativePaths || false,
             insertCharset: dotbuild.insertCharset || 'UTF-8',
-            port: opts.port || 1111,
+            port: env.opts.port || 1111,
             dir: dotbuild.buildDir,
             type: buildtype,
             uris: dotbuild.urls || []
         },
-        context: opts.context,
+        context: env.opts.context,
         contextqs: contextqs.length ? '?' + contextqs : '',
         tunnelpf: appconf.tunnelPrefix || '/tunnel',
         staticpf: appconf.staticHandling.prefix || '/static'
@@ -64,7 +64,7 @@ function getConfigs(opts, buildtype, builddir, store) {
  * destination dir, then invokes subcommand html5app.js.
  */
 function main(env, cb) {
-    var buildtype = String(env.args[0]).toLowerCase(),
+    var buildtype = (env.args.shift() || '').toLowerCase(),
         Store,
         store,
         conf;
@@ -103,7 +103,7 @@ function main(env, cb) {
     });
 
     // normalize inputs
-    conf = getConfigs(env.opts, buildtype, env.args[1], store);
+    conf = getConfigs(buildtype, env, store);
 
     function next(err) {
         if (err) {
