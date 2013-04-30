@@ -111,7 +111,10 @@ function main(env, cb) {
         }
 
         var builder = new Builder(writer, new Scraper(Mojito));
-        builder.exec(conf, store, cb);
+
+        builder.exec(conf, store, function ondone(err, msg) {
+            cb(err, err ? null : 'Done.');
+        });
     }
 
     if (env.opts.replace) {
