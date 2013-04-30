@@ -6,9 +6,8 @@ var path = require('path'),
 
     BASE,
     CWD,
-    Store,
     Mojito,
-    util,
+    parseCsv = require('./lib/shared').parseCsv,
     writer = require('./lib/writer'),
     Scraper = require('./lib/scraper'),
     Builder = require('./lib/html5app');
@@ -63,16 +62,17 @@ function getConfigs(opts, buildtype, builddir, store) {
 /**
  * Invoked by cli.js. Checks and normalizes input, optionally deletes
  * destination dir, then invokes subcommand html5app.js.
- * @method run
- * @param {Array} args Trailing cli arguments passed to cli.js
- * @param {Object} opts Parsed cli options like -c (see exports.options)
- * @param {Function} cb Callback params are: [errmsg], [show_usage], [die]
  */
-function main(args, opts, meta, cb) {
-    var csvctx = util.contextCsvToObject, // shortcut
-        buildtype = String(args[0]).toLowerCase(),
+function main(env, cb) {
+    var buildtype = String(env.args[0]).toLowerCase(),
+        Store,
         store,
         conf;
+
+    if (env.opts.loglevel) {
+        log.level = env.opts.loglevel;
+        log.silly('logging level set to', env.opts.loglevel);
+    }
 
     switch (buildtype) {
     case 'html5app':
@@ -83,24 +83,27 @@ function main(args, opts, meta, cb) {
         return cb('Invalid type', null, true);
     }
 
-    if (meta.app && meta.mojito) {
-        BASE = meta.mojito.path;
-        CWD = (meta.app && meta.app.path) || process.cwd();
+    if (env.app && env.mojito) {
+        BASE = env.mojito.path;
+        CWD = env.app.path;
     } else {
         return cb('Not a Mojito directory', null, true);
     }
 
     // hash a cli context string like 'device:iphone,environment:test'
-    opts.context = typeof opts.context === 'string' ? csvctx(opts.context) : {};
+    env.opts.context = typeof env.opts.context === 'string' ?
+        parseCsv(env.opts.context) : {};
 
     // init resource store
+    Mojito = require(path.join(env.mojito.path, 'lib', 'mojito'));
+    Store = require(path.join(env.mojito.path, 'lib', 'store'));
     store = Store.createStore({
         root: CWD,
-        context: opts.context
+        context: env.opts.context
     });
 
     // normalize inputs
-    conf = getConfigs(opts, buildtype, args[1], store);
+    conf = getConfigs(env.opts, buildtype, env.args[1], store);
 
     function next(err) {
         if (err) {
@@ -111,20 +114,19 @@ function main(args, opts, meta, cb) {
         builder.exec(conf, store, cb);
     }
 
-    if (opts.replace) {
-    	writer.rmrf(conf.build.dir, next);
+    if (env.opts.replace) {
+        writer.rmrf(conf.build.dir, next);
     } else {
-    	next();
+        next();
     }
 }
 
 exports = main;
 
 exports.options = [
-    {shortName: 'c', longName: 'context', hasValue: true},
-    {shortName: 'm', longName: 'mojit', hasValue: true},
-    {shortName: 'r', longName: 'replace', hasValue: false},
-    {shortName: 'p', longName: 'port', hasValue: true}
+    {shortName: 'c', hasValue: true,  longName: 'context'},
+    {shortName: 'p', hasValue: true,  longName: 'port'},
+    {shortName: 'r', hasValue: false, longName: 'replace'}
 ];
 
 exports.usage = [
@@ -138,7 +140,7 @@ exports.usage = [
     ' --replace: Tells the build system to delete the destination directory and replace it.',
     '        -r: Short for --replace',
     ' --context: Tells the build system what context to build with i.e. device=iphone&lang=en-GB.',
-    '        -c: Short for --context\n'].join("\n  ");
+    '        -c: Short for --context\n'].join('\n  ');
 
 exports.getConfigs = getConfigs;
 
