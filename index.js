@@ -4,8 +4,6 @@
 var path = require('path'),
     qs = require('querystring'),
 
-    BASE,
-    CWD,
     Mojito,
     parseCsv = require('./lib/shared').parseCsv,
     writer = require('./lib/writer'),
@@ -36,12 +34,12 @@ function getConfigs(buildtype, env, store) {
     // ok, we should have all the inputs we need to proceed with any build
     // apply some default for anything that may be undefined
     return {
-        mojitodir: BASE,
+        mojitodir: env.mojito.path,
         app: {
             name: env.app.name,
             version: env.app.version,
             specs: appconf.specs || {},
-            dir: env.app.path // should be same as CWD
+            dir: env.app.path // i.e. process.cwd()
         },
         build: {
             attachManifest: dotbuild.attachManifest || false,
@@ -83,11 +81,13 @@ function main(env, cb) {
         return cb('Invalid type', null, true);
     }
 
-    if (env.app && env.mojito) {
-        BASE = env.mojito.path;
-        CWD = env.app.path;
-    } else {
-        return cb('Not a Mojito directory', null, true);
+    // todo error objects with exit codes instead of strings
+    if (!env.app) {
+        cb('Please re-run this command in the top level of your application directory.');
+        return;
+    } else if (!env.mojito) {
+        cb('Please install Mojito locally with your application.');
+        return;
     }
 
     // hash a cli context string like 'device:iphone,environment:test'
@@ -98,7 +98,7 @@ function main(env, cb) {
     Mojito = require(path.join(env.mojito.path, 'lib', 'mojito'));
     Store = require(path.join(env.mojito.path, 'lib', 'store'));
     store = Store.createStore({
-        root: CWD,
+        root: env.app.path,
         context: env.opts.context
     });
 
