@@ -4,7 +4,7 @@
 var path = require('path'),
     qs = require('querystring'),
 
-    Mojito,
+    log = require('./lib/log'),
     parseCsv = require('./lib/shared').parseCsv,
     writer = require('./lib/writer'),
     Scraper = require('./lib/scraper'),
@@ -63,6 +63,7 @@ function getConfigs(buildtype, env, store) {
  */
 function main(env, cb) {
     var buildtype = (env.args.shift() || '').toLowerCase(),
+        Mojito,
         Store,
         store,
         conf;
@@ -76,9 +77,9 @@ function main(env, cb) {
     case 'html5app':
         break;
     case 'undefined':
-        return cb('Missing type', null, true);
+        return cb('Missing type');
     default:
-        return cb('Invalid type', null, true);
+        return cb('Invalid type');
     }
 
     // todo error objects with exit codes instead of strings
@@ -133,17 +134,19 @@ exports.options = [
 ];
 
 exports.usage = [
-    'mojito build {type} [destination]',
+    'Usage: mojito build [options] <type> [destination]',
     '',
     'type: "html5app" is currently the only valid type',
     'destination: (optional) the directory where the build output goes.',
     '  By default this is the type i.e. "./artifacts/builds/<type>"',
     '',
-    'OPTIONS:',
-    ' --replace: Tells the build system to delete the destination directory and replace it.',
-    '        -r: Short for --replace',
-    ' --context: Tells the build system what context to build with i.e. device=iphone&lang=en-GB.',
-    '        -c: Short for --context\n'].join('\n  ');
+    'Options:',
+    ' --directory <path>  Specify a destination directory.',
+    ' -d <path>           Short for --directory',
+    ' --replace           Replace the destination directory (delete first).',
+    '        -r           Short for --replace',
+    ' --context           Specifies context for build, i.e. "lang=en-GB".',
+    '        -c           Short for --context\n'].join('\n  ');
 
 exports.getConfigs = getConfigs;
 
