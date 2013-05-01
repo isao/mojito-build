@@ -124,10 +124,35 @@ test('mapDefxUris adds definition.json for client mojits', function(t) {
             }
         },
         buildmap = {},
-        expected = {'/tunnel/yahoo.application.test50/top_frame/definition.json?device=iphone': '/yahoo.application.test50/top_frame/definition.json'};
+        expected = {
+            '/tunnel/yahoo.application.test50/top_frame/definition.json?device=iphone': '/yahoo.application.test50/top_frame/definition.json',
+            "/tunnel/yahoo.application.test50/top_frame?device=iphone" : "/yahoo.application.test50/top_frame"
+        };
 
     t.plan(5);
     fn.mapDefxUris(buildmap, getConf(), store);
+    t.same(buildmap, expected);
+});
+
+test('mapSpecUris...', function(t) {
+    var conf = getConf(),
+        specs = {
+    	    freckle: {
+    	    	url: 'your/face'
+    	    }
+        },
+        store = {
+            getResourceVersions: function(filter) {
+                t.equal(filter.type, 'spec');
+                t.equal(filter.mojit, 'annie');
+                return specs;
+            }
+        },
+        buildmap = {},
+        expected = {"/tunnelyour/face?device=iphone" : "your/face"};
+
+    t.plan(3);
+    fn.mapSpecUris(buildmap, conf, 'annie', store);
     t.same(buildmap, expected);
 });
 
@@ -266,11 +291,33 @@ test('mungePage for attachManifest:true', function(t) {
     t.equal(expected, newstr);
 });
 
-test('mungePage for forceRelativePaths:true', function(t) {
+test('mungePage for forceRelativePaths:true HTML', function(t) {
     var uri = '/foo/bar/uri.html',
         oldstr = 'blah blah <a href="/foo/bar/baz/bah.html"> blah blah',
         newstr,
         expected = 'blah blah <a href="baz/bah.html"> blah blah',
+        conf = getConf();
+
+    conf.build.attachManifest = true;
+    conf.build.forceRelativePaths = true;
+
+    fn.init({write: function(dest, str) {
+    	t.equal(dest, '/path/to/build/dir/foo/bar/uri.html');
+    	t.equal(str, expected);
+    }});
+
+    t.plan(4);
+    newstr = fn.mungePage(conf, uri, oldstr);
+
+    t.notEqual(newstr, oldstr);
+    t.equal(newstr, expected);
+});
+
+test('mungePage for forceRelativePaths:true JSON', function(t) {
+    var uri = '/foo/bar/uri.html',
+        oldstr = 'blah blah "base":"/foo/bar/baz/boo" blah blah',
+        newstr,
+        expected = 'blah blah "base":"baz/boo/" blah blah',
         conf = getConf();
 
     conf.build.attachManifest = true;
