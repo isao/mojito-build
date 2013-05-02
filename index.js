@@ -5,7 +5,7 @@ var path = require('path'),
     qs = require('querystring'),
 
     log = require('./lib/log'),
-    parseCsv = require('./lib/shared').parseCsv,
+    parseCsvObj = require('./lib/shared').parseCsvObj,
     writer = require('./lib/writer'),
     Scraper = require('./lib/scraper'),
     Builder = require('./lib/html5app');
@@ -61,6 +61,7 @@ function getConfigs(buildtype, env, store) {
  * Invoked by cli.js. Checks and normalizes input, optionally deletes
  * destination dir, then invokes subcommand html5app.js.
  */
+// todo use real error objects with exit codes
 function main(env, cb) {
     var buildtype = (env.args.shift() || '').toLowerCase(),
         Mojito,
@@ -76,11 +77,15 @@ function main(env, cb) {
     switch (buildtype) {
     case 'html5app':
         break;
-    case 'undefined':
+    case '':
         return cb('Missing type');
     default:
         return cb('Invalid type');
     }
+
+    // hash a cli context string like 'device:iphone,environment:test'
+    env.opts.context = typeof env.opts.context === 'string' ?
+        parseCsvObj(env.opts.context) : {};
 
     // todo error objects with exit codes instead of strings
     if (!env.app) {
@@ -90,10 +95,6 @@ function main(env, cb) {
         cb('Please install Mojito locally with your application.');
         return;
     }
-
-    // hash a cli context string like 'device:iphone,environment:test'
-    env.opts.context = typeof env.opts.context === 'string' ?
-        parseCsv(env.opts.context) : {};
 
     // init resource store
     Mojito = require(path.join(env.mojito.path, 'lib', 'mojito'));
@@ -136,17 +137,25 @@ exports.options = [
 exports.usage = [
     'Usage: mojito build [options] <type> [destination]',
     '',
-    'type: "html5app" is currently the only valid type',
-    'destination: (optional) the directory where the build output goes.',
-    '  By default this is the type i.e. "./artifacts/builds/<type>"',
+    'A type of "html5app" is currently the only build type.',
+    'The destination can be specified in one of the following ways:',
+    '- the last argument',
+    '- using the --directory <path> option',
+    '- specifying a directory in application.json with the property',
+    '  builds.html5app.buildDir: "<path>"',
+    '- otherwise the destination will be "artifacts/builds/html5app"',
+    '  in the application (current working) directory.',
+    '',
+    'Example: mojito build html5app ../myapp-build',
+    '  Builds app in directory named "myapp-build" one directory up',
     '',
     'Options:',
     ' --directory <path>  Specify a destination directory.',
     ' -d <path>           Short for --directory',
     ' --replace           Replace the destination directory (delete first).',
-    '        -r           Short for --replace',
+    ' -r                  Short for --replace',
     ' --context           Specifies context for build, i.e. "lang=en-GB".',
-    '        -c           Short for --context\n'].join('\n  ');
+    ' -c                  Short for --context\n'].join('\n  ');
 
 exports.getConfigs = getConfigs;
 
