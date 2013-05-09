@@ -20,7 +20,7 @@
     "lint": "jshint {.,lib}/*.js",
     "test": "node tests",
     "cover": "istanbul cover --dir artifacts/coverage tests",
-    "bumppatch": "npm version patch -m \"tag v%s (based on $(git describe))\""
+    "clean": "git clean -dfx {.,tests}/artifacts"
   },
   "repository": {
     "type": "git",
