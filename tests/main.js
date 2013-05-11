@@ -1,5 +1,5 @@
 var test = require('tap').test,
-    fn = require('../');
+    fn = require('../build');
 
 
 test('main: err missing type', function(t) {

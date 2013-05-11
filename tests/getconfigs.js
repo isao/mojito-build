@@ -1,6 +1,6 @@
 var test = require('tap').test,
     path = require('path'),
-    fn = require('../').getConfigs;
+    fn = require('../build').getConfigs;
 
 
 function getMockConfig(specs) {
