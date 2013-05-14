@@ -1,8 +1,8 @@
 {
-  "name": "mojito-build",
+  "name": "mojito-cli-build",
   "version": "0.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "build.js",
   "dependencies": {
     "mkdirp": "~0.3.5",
     "npmlog": "0.0.2",
@@ -20,11 +20,11 @@
     "lint": "jshint {.,lib}/*.js",
     "test": "node tests",
     "cover": "istanbul cover --dir artifacts/coverage tests",
-    "bumppatch": "npm version patch -m \"tag v%s (based on $(git describe))\""
+    "clean": "git clean -dfx {.,tests}/artifacts"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/yahoo/mojito-build.git"
+    "url": "git://github.com/yahoo/mojito-cli-build.git"
   },
   "contributors": [
     "Caridy Patino <caridy@gmail.com>",
