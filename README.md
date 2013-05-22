@@ -1,14 +1,30 @@
-mojito-build
+mojito-cli-build [![Build Status](https://travis-ci.org/yahoo/mojito-cli-build.png)](https://travis-ci.org/yahoo/mojito-cli-build)
 ==========
 
-This package provides the `build` command for the [`mojito-cli`](https://github.com/yahoo/mojito-cli) tool, for use with [`mojito`](https://github.com/yahoo/mojito).
+This package provides the `build` command for the [`mojito-cli`](https://github.com/yahoo/mojito-cli) tool, to create static snapshots of mojito applications for HTML5 app publishing. Install `mojito-cli` to use the `mojito doc` command.
 
-wip.
+    npm install -g mojito-cli
 
+Usage
+-----
 
-Install
--------
+From the top of your mojito application directory, with mojito installed locally:
 
+    mojito build html5app
+
+By default, the static files will be saved in `artifacts/builds/html5app/`. You can specify another destination like:
+
+    mojito build html5app ../myhtml5app
+
+Or
+
+    mojito build html5app --directory ../myhtml5app
+
+ALternatively, you can specify your own default in application.json builds.html5app.buildDir. See the [build configuration reference](http://developer.yahoo.com/cocktails/mojito/docs/intro/mojito_configuring.html#builds-object).
+
+Specify a [context](http://developer.yahoo.com/cocktails/mojito/docs/topics/mojito_using_contexts.html):
+
+    mojito build html5app --context "key1:value1,key2:value2,key3:value3"
 
 
 Discussion/Forums
