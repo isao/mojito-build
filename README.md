@@ -2,10 +2,8 @@ mojito-cli-build [![Build Status](https://travis-ci.org/yahoo/mojito-cli-build.p
 ==========
 
 This package provides the `build` command for the [`mojito-cli`](https://github.com/yahoo/mojito-cli) tool, to create 
-static snapshots of Mojito applications for HTML5 app publishing. Install `mojito-cli` to use the 
-`mojito doc` command.
-
-    % npm install -g mojito-cli
+static snapshots of Mojito applications for HTML5 app publishing.
+Install `mojito-cli` and `mojito-cli-build` with the following: `npm install -g mojito-cli`
 
 Usage
 -----
